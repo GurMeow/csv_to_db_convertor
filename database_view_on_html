@@ -1,0 +1,59 @@
+import mysql.connector
+
+break_loop = False
+
+my_db = mysql.connector.connect(
+    host="localhost",
+    user="root",
+    password="Ha@blablabla123",
+    port="3306",
+    database="csv_to_db"
+)
+
+my_cursor = my_db.cursor()
+
+while True:
+    table_to_use = input("Enter your table you'd like to show: ")
+
+    my_cursor.execute("SELECT table_name FROM information_schema.tables WHERE table_schema = 'csv_to_db'")
+
+    table_names = my_cursor.fetchall()
+
+    for table in table_names:
+        if table[0] == table_to_use:
+            break_loop = True
+            break
+
+    if break_loop:
+        break
+
+my_cursor.execute(f"SELECT * FROM {table_to_use}")
+
+# Fetch column headers
+columns = [column[0] for column in my_cursor.description]
+
+# Fetch data rows
+table_data = my_cursor.fetchall()
+
+# Open a new HTML file for writing
+with open('text.html', 'w') as f:
+    # Write the HTML header
+    f.write('<!DOCTYPE html>\n<html lang="en">\n<head>\n')
+    f.write('<meta charset="UTF-8">\n<meta name="viewport" content="width=device-width, initial-scale=1.0">\n')
+    f.write('<title>Table Example</title>\n</head>\n<body>\n')
+
+    # Write the table header
+    f.write('<table border="1">\n<tr>\n')
+    for col in columns:
+        f.write('<th>{}</th>\n'.format(col))
+    f.write('</tr>\n')
+
+    # Write the table rows based on the list
+    for row in table_data:
+        f.write('<tr>\n')
+        for item in row:
+            f.write('<td>{}</td>\n'.format(item))
+        f.write('</tr>\n')
+
+    # Write the HTML footer
+    f.write('</table>\n</body>\n</html>\n')
